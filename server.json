@@ -2,17 +2,17 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ex3lite/mcp-rzd-tickets",
   "title": "RZD Tickets MCP",
-  "description": "Read-only MCP server that gives AI agents live visibility into RZD train tickets, cars, lower/upper seats, adjacent pairs and car photos.",
+  "description": "Read-only MCP server for RZD trains, cars, seats, adjacent pairs and car photos.",
   "repository": {
     "url": "https://github.com/ex3lite/mcp_rzd_tickets",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "mcp-rzd-tickets",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "transport": {
         "type": "stdio"
       },
