@@ -65,7 +65,7 @@ Options:
   --departure-from HH:mm
   --departure-to HH:mm
   --car-type coupe|platz|raw
-  --service 2К|2А|2Ш|3Э
+  --service RAW_RZD_CODE
   --place-kind lower|upper|other
   --require-pair
   --include-side

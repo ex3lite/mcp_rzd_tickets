@@ -20,47 +20,20 @@ import type {
 const BASE = "https://ticket.rzd.ru";
 const CHROME_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-export const SERVICE_CLASS_ENUM = Object.freeze({
-  COUPE_4_NO_PETS: {
-    code: "2Ш",
-    title: "Купе, 4-местное",
-    tags: ["без животных", "кондиционер", "биотуалет"],
+export const SERVICE_CLASS_DECODING_GUIDE = Object.freeze({
+  policy: "ServiceClass is an open-ended RZD code. Do not treat it as a closed enum; prefer ServiceClassTranscript and ServiceClassName from the live RZD response.",
+  fields: {
+    code: "Raw RZD code, for example 2Ш or 3Э.",
+    title: "Human label derived from RZD name, car type, or broad code family.",
+    tags: "Facts extracted from RZD transcript when available, plus cautious code-family hints.",
+    transcript: "Official RZD text. This is the best source when present.",
   },
-  COUPE_PETS_ALLOWED: {
-    code: "2К",
-    title: "Купе",
-    tags: ["животные разрешены", "белье включено", "кондиционер", "биотуалет"],
-  },
-  COUPE_WITH_SERVICES: {
-    code: "2А",
-    title: "Купе",
-    tags: ["повышенный сервис", "кондиционер", "биотуалет"],
-  },
-  RESERVED_SEAT_PETS_ALLOWED: {
-    code: "3Б",
-    title: "Плацкарт",
-    tags: ["животные разрешены", "кондиционер", "биотуалет"],
-  },
-  RESERVED_SEAT_STANDARD: {
-    code: "3Э",
-    title: "Плацкарт",
-    tags: ["кондиционер", "биотуалет"],
-  },
-  RESERVED_SEAT_BASIC: {
-    code: "3Л",
-    title: "Плацкарт",
-    tags: ["без кондиционера", "без биотуалета"],
-  },
+  codeShape: [
+    "The first digit is a rough family hint, not a guarantee.",
+    "The letter differentiates tariff/service variants; exact meaning can change and should come from transcript.",
+    "Agents should show the raw code together with title/tags/transcript instead of hiding it behind a local enum.",
+  ],
 });
-
-export const SERVICE_CLASS_OPTIONS = Object.freeze(Object.values(SERVICE_CLASS_ENUM).map((item) => ({
-  ...item,
-  description: `${item.title}: ${item.tags.join(", ")}`,
-})));
-
-const SERVICE_CLASS_BY_CODE = Object.freeze(Object.fromEntries(
-  Object.values(SERVICE_CLASS_ENUM).map((item) => [item.code, item]),
-));
 
 interface RawTrain {
   TrainNumber?: string;
@@ -191,20 +164,44 @@ function transcriptTags(text: string): string[] {
   ].filter(Boolean) as string[];
 }
 
+function codeFamilyHint(code: string, type: string): string[] {
+  const digit = code[0];
+  const hints = [];
+  if (digit === "1") hints.push("ориентир: высокий класс/СВ или люкс");
+  if (digit === "2") hints.push("ориентир: купейный сегмент");
+  if (digit === "3") hints.push("ориентир: плацкартный сегмент");
+  if (digit === "4") hints.push("ориентир: сидячий сегмент");
+  if (code.slice(1)) hints.push(`вариант ${code.slice(1)}: точный смысл брать из transcript РЖД`);
+  if (type && !hints.some((item) => item.toLowerCase().includes(type.toLowerCase()))) hints.push(`тип вагона РЖД: ${type}`);
+  return hints;
+}
+
+function titleFromCode(code: string): string {
+  if (code.startsWith("1")) return "Сервисный класс РЖД высокого сегмента";
+  if (code.startsWith("2")) return "Сервисный класс РЖД для купейного сегмента";
+  if (code.startsWith("3")) return "Сервисный класс РЖД для плацкартного сегмента";
+  if (code.startsWith("4")) return "Сервисный класс РЖД для сидячего сегмента";
+  return "Сервисный класс РЖД";
+}
+
 export function serviceClassInfo(item: Partial<RawCar> & { code?: string; service?: string; type?: string; transcript?: string; name?: string } = {}): ServiceClassInfo {
   const code = cleanText(item.ServiceClass || item.service || item.code);
   const type = cleanText(item.CarTypeName || item.type);
   const transcript = cleanText(item.ServiceClassTranscript || item.transcript);
   const name = cleanText(item.ServiceClassNameRu || item.ServiceClassName || item.name);
-  const known = SERVICE_CLASS_BY_CODE[code as keyof typeof SERVICE_CLASS_BY_CODE];
-  const title = known?.title || name || [type, code].filter(Boolean).join(" ") || "Класс не указан";
-  const tags = known?.tags || transcriptTags(transcript);
+  const title = name || type || (code ? titleFromCode(code) : "Класс не указан");
+  const tags = [...new Set([...transcriptTags(transcript), ...codeFamilyHint(code, type)])];
+  const details = [
+    code && `код ${code}`,
+    tags.length && tags.join(", "),
+    transcript && `РЖД: ${transcript}`,
+  ].filter(Boolean);
   return {
     code,
     title,
     tags,
     transcript,
-    description: tags.length ? `${title}: ${tags.join(", ")}` : title,
+    description: details.length ? `${title}: ${details.join("; ")}` : title,
   };
 }
 

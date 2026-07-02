@@ -4,7 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import {
   RzdClient,
-  SERVICE_CLASS_OPTIONS,
+  SERVICE_CLASS_DECODING_GUIDE,
   buildCheckoutUrl,
   parseSearchUrl,
 } from "./index.js";
@@ -34,7 +34,7 @@ const trainFilterShape = {
 const carFilterShape = {
   ...trainFilterShape,
   carType: z.string().optional().describe("coupe, platz, or raw RZD car type text."),
-  service: z.string().optional().describe("Service class code, e.g. 2К, 2А, 2Ш, 3Э."),
+  service: z.string().optional().describe("Raw RZD service class code, e.g. 2К, 2А, 2Ш. The code set is open-ended."),
   maxPrice: z.number().optional().describe("Maximum price in RUB."),
   minPlaces: z.number().int().min(0).optional().describe("Minimum places in a car row."),
   placeKind: z.enum(["lower", "upper", "other"]).optional().describe("Seat kind filter."),
@@ -159,10 +159,10 @@ export function createServer() {
 
   server.registerTool("rzd_service_classes", {
     title: "Explain RZD service classes",
-    description: "Return known human-readable service class enum values such as 2Ш, 2К, 2А, 3Э.",
+    description: "Explain how to read open-ended RZD ServiceClass codes. This is a decoding guide, not a closed enum.",
     inputSchema: {},
     annotations: { readOnlyHint: true },
-  }, async () => ok({ classes: SERVICE_CLASS_OPTIONS }));
+  }, async () => ok({ guide: SERVICE_CLASS_DECODING_GUIDE }));
 
   return server;
 }

@@ -4,26 +4,26 @@
 
 # RZD Tickets MCP
 
-Read-only MCP server that gives AI agents live visibility into
-`ticket.rzd.ru`: trains, car classes, lower/upper seats, side places,
-accessible places, adjacent lower+upper pairs, prices, and official checkout
-handoff URLs.
+Read-only MCP-сервер, который дает агентам живые “глаза” на `ticket.rzd.ru`:
+поезда, вагоны, цены, нижние/верхние места, боковые места, спецместа, соседние
+пары `нижнее+верхнее` и официальные ссылки РЖД для ручного оформления.
 
-It does not log in, book, hold, pay, cancel, or modify RZD orders.
+Сервер не логинится, не бронирует, не создает холд, не оплачивает, не отменяет
+заказы и не меняет личный кабинет РЖД.
 
-## Tools
+## Инструменты
 
-| Tool | Purpose |
+| Инструмент | Что делает |
 |---|---|
-| `rzd_station_suggest` | Find station `nodeId` and `expressCode` by name. |
-| `rzd_search_trains` | Train-level availability, prices, car groups and checkout URL. |
-| `rzd_train_cars` | Drill into cars and free places for selected trains. |
-| `rzd_find_places` | Return only matched trains/cars/pairs by filters. |
-| `rzd_checkout_url` | Build the official RZD handoff URL. |
-| `rzd_parse_search_url` | Parse an existing `ticket.rzd.ru/searchresults` URL. |
-| `rzd_service_classes` | Explain service classes such as `2Ш`, `2К`, `2А`, `3Э`. |
+| `rzd_station_suggest` | Ищет `nodeId` и `expressCode` станции по названию. |
+| `rzd_search_trains` | Показывает поезда, цены, группы вагонов и ссылку РЖД. |
+| `rzd_train_cars` | Проваливается в `CarPricing`: вагоны, места, статистика верх/низ. |
+| `rzd_find_places` | Возвращает только совпадения по фильтрам. |
+| `rzd_checkout_url` | Строит официальную ссылку РЖД для ручного оформления. |
+| `rzd_parse_search_url` | Разбирает URL поиска РЖД. |
+| `rzd_service_classes` | Объясняет, как читать открытые коды классов РЖД. |
 
-## Quick Start
+## Установка
 
 ```bash
 git clone git@github.com:ex3lite/mcp_rzd_tickets.git
@@ -32,13 +32,25 @@ npm install
 npm run build
 ```
 
-Run as an MCP stdio server:
+Запуск MCP stdio-сервера:
 
 ```bash
 node dist/mcp.js
 ```
 
-Run directly from GitHub in MCP clients that support `npx`:
+Быстрая CLI-проверка:
+
+```bash
+node dist/cli.js --suggest "Красноярск"
+node dist/cli.js --origin 2038000 --destination 2054275 --date 2026-07-12 --train 376Ы --require-pair --car-type coupe
+```
+
+## Конфиг MCP-клиента
+
+Один и тот же stdio-конфиг подходит для Claude Desktop, Cursor, Windsurf,
+Cline, Roo Code, Continue, Codex-compatible MCP hosts и других клиентов MCP.
+
+Прямо из GitHub через `npx`:
 
 ```json
 {
@@ -54,17 +66,7 @@ Run directly from GitHub in MCP clients that support `npx`:
 }
 ```
 
-Or use the CLI for a direct check:
-
-```bash
-node dist/cli.js --suggest "Красноярск"
-node dist/cli.js --origin 2038000 --destination 2054275 --date 2026-07-12 --train 376Ы --require-pair --car-type coupe
-```
-
-## Agent Configuration
-
-Use the same stdio config shape in Claude Desktop, Cursor, Windsurf, Cline,
-Roo Code, Continue and Codex-compatible MCP hosts:
+Локальный checkout:
 
 ```json
 {
@@ -80,7 +82,7 @@ Roo Code, Continue and Codex-compatible MCP hosts:
 }
 ```
 
-With a SOCKS proxy:
+С SOCKS-прокси:
 
 ```json
 {
@@ -97,49 +99,64 @@ With a SOCKS proxy:
 }
 ```
 
-## Common Agent Prompts
+## Примеры запросов агенту
 
 ```text
-Find trains from Красноярск Пасс to Анзеби on 2026-07-12.
-Show whether train 376Ы has adjacent lower+upper coupe places.
-Exclude side places and disabled/special places.
-Return the checkout URL if a match exists.
+Найди поезд 376Ы Красноярск Пасс — Анзеби на 2026-07-12.
+Нужна соседняя пара нижнее+верхнее в купе.
+Боковые и спецместа не учитывать.
+Если есть совпадение, дай ссылку РЖД для оформления.
 ```
 
 ```text
-Use rzd_station_suggest for "Анзеби" and "Красноярск".
-Then search 2 passengers on 2026-07-03 for train 097Э.
-I need a lower+upper pair in one compartment.
+Через rzd_station_suggest найди коды Анзеби и Красноярск.
+Потом проверь 2 пассажиров на 2026-07-03 по поезду 097Э.
+Ищу пару нижнее+верхнее в одном отсеке.
 ```
 
-## Filters
+## Фильтры
 
-- `trains`: exact train numbers, for example `["097Э"]`.
-- `departureFrom` / `departureTo`: local time window, `HH:mm`.
-- `carType`: `coupe`, `platz`, or raw RZD car type text.
-- `service`: class code such as `2К`, `2А`, `2Ш`, `3Э`.
-- `placeKind`: `lower`, `upper`, or `other`.
-- `requirePair`: adjacent lower+upper pair in the same compartment.
-- `includeSide`: include side places.
-- `includeAccessible`: include disabled/special places.
-- `maxPrice`, `minPlaces`: price and row-level place filters.
+- `trains`: точные номера поездов, например `["097Э"]`.
+- `departureFrom` / `departureTo`: окно отправления `HH:mm`.
+- `carType`: `coupe`, `platz` или сырой тип РЖД.
+- `service`: сырой код класса РЖД, например `2Ш`; список кодов открыт.
+- `placeKind`: `lower`, `upper`, `other`.
+- `requirePair`: соседняя пара `нижнее+верхнее` в одном отсеке.
+- `includeSide`: учитывать боковые места.
+- `includeAccessible`: учитывать спецместа для инвалидов/сопровождающих.
+- `maxPrice`, `minPlaces`: цена и минимальное количество мест.
 
-## Environment
+## Классы вагонов РЖД
 
-| Variable | Description |
+Класс обслуживания РЖД не моделируется как enum. Это намеренно.
+
+РЖД может добавлять и менять коды, поэтому сервер отдает агенту:
+
+- `code`: сырой код РЖД, например `2Ш`;
+- `title`: человекочитаемый заголовок из ответа РЖД, типа вагона или общего семейства;
+- `tags`: факты из официального `ServiceClassTranscript` и осторожные подсказки;
+- `transcript`: официальный текст РЖД, если он пришел в `CarPricing`;
+- `description`: готовая строка для показа человеку.
+
+Агент должен показывать сырой код вместе с `description`, а точный смысл брать
+из `transcript`, когда он есть. Так не нужно расширять локальный enum каждый
+раз, когда РЖД вводит новый вариант.
+
+## Переменные окружения
+
+| Переменная | Описание |
 |---|---|
-| `RZD_PROXY_URL` | Optional `http://`, `https://`, `socks4://` or `socks5://` proxy. |
-| `RZD_TIMEOUT_MS` | Request timeout. Default: `20000`. |
+| `RZD_PROXY_URL` | Опциональный `http://`, `https://`, `socks4://` или `socks5://` прокси. |
+| `RZD_TIMEOUT_MS` | Таймаут запроса. По умолчанию `20000`. |
 
-## Notes
+## Языки
 
-RZD can change private web endpoints without notice. This server uses the same
-read-only pricing endpoints that the public web app uses and browser-like
-headers. If RZD changes payloads, keep the failure visible to the agent instead
-of hiding it.
-
-## Languages
-
-- [Русский](./docs/README.ru.md)
-- [English](./README.md)
+- [English](./docs/README.en.md)
 - [中文](./docs/README.zh.md)
+
+## Ограничения
+
+RZD может менять приватные web-endpoint без предупреждения. Этот сервер
+использует те же read-only pricing endpoint, что и публичный web-app, и
+браузероподобные заголовки. Если payload РЖД изменится, ошибка должна быть
+видна агенту, а не скрыта.

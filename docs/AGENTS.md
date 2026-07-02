@@ -13,6 +13,12 @@ Recommended flow:
 Do not claim that a ticket is reserved. The server only reads public web-app
 pricing endpoints.
 
+Service classes:
+
+- Do not treat `ServiceClass` as a closed enum.
+- Show the raw code together with `serviceInfo.description`.
+- Prefer `serviceInfo.transcript` when RZD provides it.
+
 Default safety filters:
 
 - `includeAccessible=false`

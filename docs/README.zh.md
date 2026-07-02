@@ -16,7 +16,7 @@
 | `rzd_find_places` | 按过滤条件返回匹配结果。 |
 | `rzd_checkout_url` | 生成官方 RZD 手动购票链接。 |
 | `rzd_parse_search_url` | 解析 RZD 搜索 URL。 |
-| `rzd_service_classes` | 解释 `2Ш`、`2К`、`2А`、`3Э` 等服务等级。 |
+| `rzd_service_classes` | 解释开放式 RZD 服务等级代码，不把它们当成固定 enum。 |
 
 ## 安装
 
@@ -87,3 +87,9 @@ I need an adjacent lower+upper pair in a coupe.
 Exclude side places and disabled/special places.
 Return the official checkout URL if a match exists.
 ```
+
+## 服务等级
+
+RZD 服务等级代码不是本地固定 enum。服务器会返回原始 `code`、可读
+`description`、官方 `transcript` 和谨慎的提示。Agent 应优先展示原始代码和
+description；当 transcript 存在时，以 transcript 为准。

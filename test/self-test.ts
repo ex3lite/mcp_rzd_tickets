@@ -27,6 +27,8 @@ assert.deepEqual(placeStats(cars), { total: 2, lower: 1, upper: 1, sideLower: 0,
 assert.equal(filterTrain({ TrainNumber: "1", LocalDepartureDateTime: "2026-08-11T23:30:00" }, { trains: ["1"], departureFrom: "22:00", departureTo: "02:00" }), true);
 assert.equal(filterCar({ CarPlaceNameRu: "Для инвалидов, нижнее" }, { placeKind: "lower" }), false);
 assert.equal(filterCar({ CarPlaceNameRu: "Для инвалидов, нижнее" }, { placeKind: "lower", includeAccessible: true }), true);
-assert.equal(serviceClassInfo({ ServiceClass: "2Ш" }).description, "Купе, 4-местное: без животных, кондиционер, биотуалет");
+assert.equal(serviceClassInfo({ ServiceClass: "2Ш" }).code, "2Ш");
+assert.equal(serviceClassInfo({ ServiceClass: "2Ш" }).tags.includes("ориентир: купейный сегмент"), true);
+assert.equal(serviceClassInfo({ ServiceClass: "2Ш" }).description.includes("код 2Ш"), true);
 
 console.log("ok");

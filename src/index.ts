@@ -1,7 +1,6 @@
 export {
   RzdClient,
-  SERVICE_CLASS_ENUM,
-  SERVICE_CLASS_OPTIONS,
+  SERVICE_CLASS_DECODING_GUIDE,
   buildCheckoutUrl,
   buildPricingPath,
   filterCar,
