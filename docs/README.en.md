@@ -6,7 +6,8 @@
 
 Read-only MCP server that gives AI agents live visibility into `ticket.rzd.ru`:
 trains, cars, prices, lower/upper seats, side places, accessible places,
-adjacent lower+upper pairs, and official RZD checkout handoff URLs.
+adjacent lower+upper pairs, car photos when RZD publishes them, and official
+RZD checkout handoff URLs.
 
 It does not log in, book, hold, pay, cancel, or modify RZD orders.
 
@@ -16,8 +17,8 @@ It does not log in, book, hold, pay, cancel, or modify RZD orders.
 |---|---|
 | `rzd_station_suggest` | Find station `nodeId` and `expressCode` by name. |
 | `rzd_search_trains` | Train-level availability, prices, car groups and checkout URL. |
-| `rzd_train_cars` | Drill into `CarPricing`: cars, seats, lower/upper stats. |
-| `rzd_find_places` | Return only matched trains/cars/pairs by filters. |
+| `rzd_train_cars` | Drill into `CarPricing`: cars, seats, lower/upper stats, photos. |
+| `rzd_find_places` | Return only matched trains/cars/pairs by filters, including car photos. |
 | `rzd_checkout_url` | Build the official RZD handoff URL. |
 | `rzd_parse_search_url` | Parse an existing `ticket.rzd.ru/searchresults` URL. |
 | `rzd_service_classes` | Explain how to read open-ended RZD service class codes. |
@@ -63,7 +64,18 @@ Run directly from GitHub in MCP clients that support `npx`:
 - `requirePair`: adjacent lower+upper pair in the same compartment.
 - `includeSide`: include side places.
 - `includeAccessible`: include disabled/special places.
+- `includeImages`: fetch car gallery URLs when RZD returns `HasImages=true`; enabled by default in MCP.
 - `maxPrice`, `minPlaces`: price and row-level place filters.
+
+## Car Photos
+
+`rzd_train_cars` and `rzd_find_places` return `imageInfo` for every car.
+Use `imageInfo.images[].thumbnailUrl` for previews and
+`imageInfo.images[].contentUrl` for full-size photos.
+
+RZD does not publish photos for every car. When `CarPricing` returns
+`HasImages=false`, the server leaves `images` empty and explains the reason in
+`imageInfo.unavailableReason`.
 
 ## Service Classes
 

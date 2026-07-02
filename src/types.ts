@@ -28,6 +28,7 @@ export interface CarFilter extends TrainFilter {
   requirePair?: boolean;
   includeSide?: boolean;
   includeAccessible?: boolean;
+  includeImages?: boolean;
 }
 
 export interface RzdStationSuggest {
@@ -54,6 +55,29 @@ export interface ServiceClassInfo {
   tags: string[];
   transcript: string;
   description: string;
+}
+
+export interface CarImage {
+  id: number | null;
+  title: string;
+  titleEn: string;
+  sequence: number | null;
+  thumbnailUrl: string;
+  contentUrl: string;
+}
+
+export interface CarImageInfo {
+  hasImages: boolean;
+  fetched: boolean;
+  schemeId: number | null;
+  schemeName: string;
+  carSubType: string;
+  carrier: string;
+  listUrl: string | null;
+  requestParams: Record<string, string>;
+  images: CarImage[];
+  unavailableReason?: string;
+  error?: string;
 }
 
 export interface TrainSummary {
@@ -95,6 +119,7 @@ export interface CarSummary {
   placeStats: SeatStats;
   minPrice: number | null;
   accessible: boolean;
+  imageInfo: CarImageInfo;
 }
 
 export interface AdjacentPair {
@@ -108,6 +133,7 @@ export interface AdjacentPair {
   upper: string;
   minPrice: number | null;
   placeStats: SeatStats;
+  imageInfo?: CarImageInfo;
 }
 
 export interface TrainAvailability {

@@ -19,6 +19,13 @@ Service classes:
 - Show the raw code together with `serviceInfo.description`.
 - Prefer `serviceInfo.transcript` when RZD provides it.
 
+Car photos:
+
+- `rzd_train_cars` and `rzd_find_places` include `imageInfo` by default.
+- Show `imageInfo.images[].contentUrl` when the user asks what the car looks like.
+- If `imageInfo.hasImages=false`, say that RZD does not publish photos for that car.
+- If `imageInfo.error` exists, keep the ticket/seat result and report that only photo loading failed.
+
 Default safety filters:
 
 - `includeAccessible=false`

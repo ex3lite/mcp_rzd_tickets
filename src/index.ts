@@ -1,6 +1,7 @@
 export {
   RzdClient,
   SERVICE_CLASS_DECODING_GUIDE,
+  buildCarImageUrl,
   buildCheckoutUrl,
   buildPricingPath,
   filterCar,
@@ -16,6 +17,8 @@ export {
 export type {
   AdjacentPair,
   CarFilter,
+  CarImage,
+  CarImageInfo,
   CarSummary,
   PlaceKind,
   RzdClientOptions,

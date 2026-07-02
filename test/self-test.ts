@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  buildCarImageUrl,
   buildCheckoutUrl,
   buildPricingPath,
   filterCar,
@@ -16,6 +17,10 @@ assert.deepEqual(parsed, { originNodeId: "a", destinationNodeId: "b", date: "202
 assert.equal(normalizeDate("2026-8-1"), "2026-08-01");
 assert.equal(buildPricingPath({ origin: "2054275", destination: "2038000", date: "2026-08-11" }).includes("origin=2054275"), true);
 assert.equal(buildCheckoutUrl({ origin: "a", destination: "b", date: "2026-08-11", adults: 2 }), "https://ticket.rzd.ru/searchresults/v/1/a/b/2026-08-11?adult=2");
+assert.equal(
+  buildCarImageUrl("/1486/Content"),
+  "https://ticket.rzd.ru/apib2b/p/Railway/V1/CarImage/Image/1486/Content?service_provider=B2B_RZD",
+);
 
 const cars = [
   { TrainNumber: "1", CarNumber: "1", CarTypeName: "КУПЕ", ServiceClass: "2К", CarSubType: "x", CarPlaceNameRu: "Нижнее", FreePlacesByCompartments: [{ CompartmentNumber: "1", Places: "1" }] },

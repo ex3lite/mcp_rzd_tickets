@@ -41,6 +41,7 @@ const carFilterShape = {
   requirePair: z.boolean().default(false).describe("Return only adjacent lower+upper pairs."),
   includeSide: z.boolean().default(false).describe("Include side places."),
   includeAccessible: z.boolean().default(false).describe("Include disabled/special places."),
+  includeImages: z.boolean().default(true).describe("Fetch RZD car photo gallery URLs when CarPricing says HasImages=true."),
 };
 
 function ok(data: Record<string, unknown>) {
@@ -83,6 +84,7 @@ function carFilter(args: Partial<z.infer<z.ZodObject<typeof carFilterShape>>>): 
     requirePair: args.requirePair,
     includeSide: args.includeSide,
     includeAccessible: args.includeAccessible,
+    includeImages: args.includeImages,
   };
 }
 

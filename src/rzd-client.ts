@@ -3,6 +3,8 @@ import { SocksProxyAgent } from "socks-proxy-agent";
 import { ProxyAgent } from "undici";
 import type {
   AdjacentPair,
+  CarImage,
+  CarImageInfo,
   CarFilter,
   CarGroupSummary,
   CarSummary,
@@ -71,6 +73,12 @@ interface RawCar {
   CarType?: string;
   CarTypeName?: string;
   CarSubType?: string;
+  Carrier?: string;
+  CarrierDisplayName?: string;
+  CarSchemeName?: string;
+  CarNumeration?: string;
+  HasImages?: boolean;
+  RailwayCarSchemeId?: number | null;
   ServiceClass?: string;
   ServiceClassTranscript?: string;
   ServiceClassNameRu?: string;
@@ -81,6 +89,20 @@ interface RawCar {
   FreePlacesByCompartments?: Array<{ CompartmentNumber?: string; Places?: string }>;
   PlaceQuantity?: number;
   MinPrice?: number;
+}
+
+interface RawCarImage {
+  RailwayCarImageId?: number;
+  TitleRu?: string;
+  TitleEn?: string;
+  Preview?: string;
+  Content?: string;
+  SequenceNumber?: number;
+}
+
+interface RawCarImageList {
+  SchemeId?: number;
+  Images?: RawCarImage[];
 }
 
 interface ExpandedPlace {
@@ -293,7 +315,7 @@ export function placeStats(cars: RawCar[], filter: CarFilter = {}): SeatStats {
   return summarizePlaces(places);
 }
 
-export function findAdjacentPairs(cars: RawCar[], filter: CarFilter = {}): AdjacentPair[] {
+export function findAdjacentPairs(cars: RawCar[], filter: CarFilter = {}, imageInfoByKey = new Map<string, CarImageInfo>(), train?: RawTrain): AdjacentPair[] {
   const groups = new Map<string, { car: RawCar; places: ExpandedPlace[] }>();
   for (const car of cars.filter((item) => filterCar(item, filter))) {
     const key = [car.TrainNumber, car.CarNumber, car.CarTypeName, car.ServiceClass, car.CarSubType].join("|");
@@ -319,13 +341,14 @@ export function findAdjacentPairs(cars: RawCar[], filter: CarFilter = {}): Adjac
         upper: upper.raw,
         minPrice: car.MinPrice ?? null,
         placeStats: summarizePlaces(places),
+        imageInfo: train ? imageInfoByKey.get(carImageKey(car, train)) || baseCarImageInfo(car, train) : undefined,
       });
     }
   }
   return pairs;
 }
 
-function toCarSummary(car: RawCar): CarSummary {
+function toCarSummary(car: RawCar, imageInfo: CarImageInfo): CarSummary {
   return {
     train: String(car.TrainNumber || ""),
     car: String(car.CarNumber || ""),
@@ -338,6 +361,7 @@ function toCarSummary(car: RawCar): CarSummary {
     placeStats: placeStats([car], { includeAccessible: true, includeSide: true }),
     minPrice: car.MinPrice ?? null,
     accessible: isAccessiblePlace(car),
+    imageInfo,
   };
 }
 
@@ -409,6 +433,16 @@ export function buildPricingPath(input: Required<Pick<SearchInput, "origin" | "d
   return `/api/v1/railway-service/prices/train-pricing?${qs}`;
 }
 
+export function buildCarImageUrl(path: string): string {
+  const imagePath = `/${String(path || "").replace(/^\/+/, "")}`;
+  return `${BASE}/apib2b/p/Railway/V1/CarImage/Image${imagePath}?service_provider=B2B_RZD`;
+}
+
+function buildCarImageListPath(params: Record<string, string>): string {
+  const qs = new URLSearchParams({ ...params, service_provider: "B2B_RZD" });
+  return `/api/v1/railway-service/carimage/list?${qs}`;
+}
+
 function buildCarPricingBody(train: RawTrain, input: SearchInput) {
   return {
     OriginCode: train.OriginStationCode || input.origin,
@@ -420,6 +454,65 @@ function buildCarPricingBody(train: RawTrain, input: SearchInput) {
     OnlyFpkBranded: false,
     HasPlacesForLargeFamily: Boolean(input.largeFamily),
     CarIssuingType: "Passenger",
+  };
+}
+
+function carImageRequestParams(car: RawCar, train: RawTrain): Record<string, string> {
+  const params = {
+    Carrier: cleanText(car.CarrierDisplayName || car.Carrier),
+    CarSubType: cleanText(car.CarSchemeName || car.CarSubType),
+    CarNumber: cleanText(car.CarNumber),
+    ServiceClass: cleanText(car.ServiceClass),
+    TrainNumber: cleanText(train.TrainNumber || car.TrainNumber),
+    DepartureDate: cleanText(train.DepartureDateTime || train.LocalDepartureDateTime),
+    CarNumeration: cleanText(car.CarNumeration || "Unknown"),
+  };
+  return Object.fromEntries(Object.entries(params).filter(([, value]) => value));
+}
+
+function carImageKey(car: RawCar, train: RawTrain): string {
+  const params = carImageRequestParams(car, train);
+  return [
+    params.TrainNumber,
+    params.DepartureDate,
+    params.Carrier,
+    params.CarSubType,
+    params.CarNumber,
+    params.ServiceClass,
+    params.CarNumeration,
+  ].join("|");
+}
+
+function baseCarImageInfo(car: RawCar, train: RawTrain): CarImageInfo {
+  const params = carImageRequestParams(car, train);
+  const hasImages = Boolean(car.HasImages);
+  const canRequest = hasImages && ["Carrier", "CarSubType", "CarNumber", "ServiceClass", "TrainNumber", "DepartureDate"].every((key) => Boolean(params[key]));
+  return {
+    hasImages,
+    fetched: false,
+    schemeId: car.RailwayCarSchemeId ?? null,
+    schemeName: cleanText(car.CarSchemeName),
+    carSubType: cleanText(car.CarSubType),
+    carrier: cleanText(car.CarrierDisplayName || car.Carrier),
+    listUrl: canRequest ? `${BASE}${buildCarImageListPath(params)}` : null,
+    requestParams: params,
+    images: [],
+    unavailableReason: hasImages
+      ? canRequest
+        ? "image list was not requested; call with includeImages=true"
+        : "RZD marked the car as having images but did not provide enough car metadata for the image-list request"
+      : "RZD CarPricing returned HasImages=false for this car",
+  };
+}
+
+function mapCarImage(image: RawCarImage): CarImage {
+  return {
+    id: image.RailwayCarImageId ?? null,
+    title: cleanText(image.TitleRu),
+    titleEn: cleanText(image.TitleEn),
+    sequence: image.SequenceNumber ?? null,
+    thumbnailUrl: buildCarImageUrl(String(image.Preview || "")),
+    contentUrl: buildCarImageUrl(String(image.Content || "")),
   };
 }
 
@@ -481,12 +574,14 @@ export class RzdClient {
     const result: TrainAvailability[] = [];
     for (const train of trains) {
       const cars = await this.searchCarsForTrain(train, search);
+      const imageInfoByKey = filter.includeImages ? await this.fetchCarImageInfoMap(cars, train) : new Map<string, CarImageInfo>();
+      const getImageInfo = (car: RawCar) => imageInfoByKey.get(carImageKey(car, train)) || baseCarImageInfo(car, train);
       const filteredCars = cars.filter((car) => filterCar(car, filter));
-      const pairs = filter.requirePair ? findAdjacentPairs(cars, filter) : [];
+      const pairs = filter.requirePair ? findAdjacentPairs(cars, filter, imageInfoByKey, train) : [];
       const matched = filter.requirePair ? pairs.length > 0 : filteredCars.length > 0;
       result.push({
         train: trainSummary(train, search.date, search, filter, cars),
-        cars: filteredCars.map(toCarSummary),
+        cars: filteredCars.map((car) => toCarSummary(car, getImageInfo(car))),
         pairs,
         matched,
         matchCount: filter.requirePair ? pairs.length : filteredCars.length,
@@ -497,6 +592,52 @@ export class RzdClient {
 
   async searchCars(input: SearchInput, filter: CarFilter = {}): Promise<TrainAvailability[]> {
     return this.trainAvailability(input, filter);
+  }
+
+  private async fetchCarImageInfoMap(cars: RawCar[], train: RawTrain): Promise<Map<string, CarImageInfo>> {
+    const result = new Map<string, CarImageInfo>();
+    const unique = new Map<string, RawCar>();
+    for (const car of cars) {
+      const key = carImageKey(car, train);
+      if (!unique.has(key)) unique.set(key, car);
+    }
+
+    await Promise.all([...unique].map(async ([key, car]) => {
+      const baseInfo = baseCarImageInfo(car, train);
+      if (!baseInfo.hasImages || !baseInfo.listUrl) {
+        result.set(key, baseInfo);
+        return;
+      }
+
+      try {
+        const data = await this.rzdJson(buildCarImageListPath(baseInfo.requestParams), {
+          referer: buildCheckoutUrl({
+            origin: String(train.OriginStationCode || ""),
+            destination: String(train.DestinationStationCode || ""),
+            date: String(train.DepartureDateTime || train.LocalDepartureDateTime || "").slice(0, 10) || "1970-01-01",
+          }),
+        }) as RawCarImageList;
+        const images = (data.Images || [])
+          .slice()
+          .sort((left, right) => Number(left.SequenceNumber ?? 0) - Number(right.SequenceNumber ?? 0))
+          .map(mapCarImage);
+        result.set(key, {
+          ...baseInfo,
+          fetched: true,
+          schemeId: data.SchemeId ?? baseInfo.schemeId,
+          images,
+          unavailableReason: images.length ? undefined : "RZD image-list endpoint returned no images for this car",
+        });
+      } catch (error) {
+        result.set(key, {
+          ...baseInfo,
+          error: error instanceof Error ? error.message : String(error),
+          unavailableReason: "RZD image-list request failed",
+        });
+      }
+    }));
+
+    return result;
   }
 
   private async searchCarsForTrain(train: RawTrain, input: SearchInput): Promise<RawCar[]> {
