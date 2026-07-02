@@ -10,7 +10,7 @@ import {
 } from "./index.js";
 import type { CarFilter, SearchInput, TrainFilter } from "./types.js";
 
-const version = "0.1.1";
+const version = "0.1.2";
 const client = new RzdClient();
 
 const searchShape = {

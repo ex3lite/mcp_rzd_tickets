@@ -7,12 +7,12 @@
     "url": "https://github.com/ex3lite/mcp_rzd_tickets",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "mcp-rzd-tickets",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "stdio"
       },

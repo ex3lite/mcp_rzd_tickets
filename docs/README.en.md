@@ -38,20 +38,80 @@ Run as an MCP stdio server:
 node dist/mcp.js
 ```
 
-Run directly from GitHub in MCP clients that support `npx`:
+The package is published to npm as `mcp-rzd-tickets`, so most agents can run it
+without clone/build:
+
+```bash
+npx -y mcp-rzd-tickets
+```
+
+### Claude Code
+
+Global install:
+
+```bash
+claude mcp add -s user rzd_tickets -- npx -y mcp-rzd-tickets
+claude mcp list
+```
+
+Project-only install:
+
+```bash
+claude mcp add -s project rzd_tickets -- npx -y mcp-rzd-tickets
+```
+
+### Codex
+
+```bash
+codex mcp add rzd_tickets --env RZD_TIMEOUT_MS=20000 -- npx -y mcp-rzd-tickets
+codex mcp list
+```
+
+Codex may need a new session or restart after changing MCP config.
+
+### Claude Desktop, Cursor, Windsurf, Cline, Roo Code
+
+Use the same JSON block in clients that support MCP JSON config:
 
 ```json
 {
   "mcpServers": {
     "rzd_tickets": {
       "command": "npx",
-      "args": ["-y", "--package", "github:ex3lite/mcp_rzd_tickets", "rzd-tickets-mcp"],
+      "args": ["-y", "mcp-rzd-tickets"],
       "env": {
         "RZD_TIMEOUT_MS": "20000"
       }
     }
   }
 }
+```
+
+Common locations:
+
+| Client | Location |
+|---|---|
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json`, under `mcpServers`. |
+| Cursor | `~/.cursor/mcp.json` globally or `.cursor/mcp.json` in a project. |
+| Windsurf | Settings → Cascade/MCP → Add custom server, then paste the JSON block. |
+| Cline | MCP Servers → Configure MCP Servers or `~/.cline/mcp.json`. |
+| Roo Code | MCP Servers → Edit Global MCP / Edit Project MCP. |
+
+### Continue
+
+Continue can read JSON MCP configs, but its native block format is YAML. Create
+`.continue/mcpServers/rzd-tickets.yaml`:
+
+```yaml
+name: RZD Tickets MCP
+version: 0.1.2
+schema: v1
+mcpServers:
+  - name: rzd_tickets
+    command: npx
+    args:
+      - -y
+      - mcp-rzd-tickets
 ```
 
 Proxy is disabled by default. Set `RZD_PROXY_URL` only when direct RZD requests

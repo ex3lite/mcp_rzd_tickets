@@ -48,17 +48,48 @@ node dist/cli.js --origin 2038000 --destination 2054275 --date 2026-07-12 --trai
 
 ## Конфиг MCP-клиента
 
-Один и тот же stdio-конфиг подходит для Claude Desktop, Cursor, Windsurf,
-Cline, Roo Code, Continue, Codex-compatible MCP hosts и других клиентов MCP.
+Пакет опубликован в npm как `mcp-rzd-tickets`, поэтому установка обычно не
+требует clone/build:
 
-Прямо из GitHub через `npx`:
+```bash
+npx -y mcp-rzd-tickets
+```
+
+### Claude Code
+
+Глобально для всех проектов:
+
+```bash
+claude mcp add -s user rzd_tickets -- npx -y mcp-rzd-tickets
+claude mcp list
+```
+
+Только для текущего проекта:
+
+```bash
+claude mcp add -s project rzd_tickets -- npx -y mcp-rzd-tickets
+```
+
+### Codex
+
+```bash
+codex mcp add rzd_tickets --env RZD_TIMEOUT_MS=20000 -- npx -y mcp-rzd-tickets
+codex mcp list
+```
+
+После изменения MCP-конфига уже открытой сессии Codex может понадобиться новый
+чат или перезапуск, чтобы сервер появился в списке инструментов.
+
+### Claude Desktop, Cursor, Windsurf, Cline, Roo Code
+
+Для клиентов с JSON MCP-конфигом используй один и тот же блок:
 
 ```json
 {
   "mcpServers": {
     "rzd_tickets": {
       "command": "npx",
-      "args": ["-y", "--package", "github:ex3lite/mcp_rzd_tickets", "rzd-tickets-mcp"],
+      "args": ["-y", "mcp-rzd-tickets"],
       "env": {
         "RZD_TIMEOUT_MS": "20000"
       }
@@ -67,7 +98,34 @@ Cline, Roo Code, Continue, Codex-compatible MCP hosts и других клиен
 }
 ```
 
-Локальный checkout:
+Куда вставлять:
+
+| Клиент | Куда ставить |
+|---|---|
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json`, ключ `mcpServers`. |
+| Cursor | `~/.cursor/mcp.json` глобально или `.cursor/mcp.json` в проекте. |
+| Windsurf | Settings → Cascade/MCP → Add custom server, затем JSON выше. |
+| Cline | MCP Servers → Configure MCP Servers или `~/.cline/mcp.json`. |
+| Roo Code | MCP Servers → Edit Global MCP / Edit Project MCP. |
+
+### Continue
+
+Continue умеет читать JSON MCP config, но его родной формат — YAML block в
+`.continue/mcpServers/rzd-tickets.yaml`:
+
+```yaml
+name: RZD Tickets MCP
+version: 0.1.2
+schema: v1
+mcpServers:
+  - name: rzd_tickets
+    command: npx
+    args:
+      - -y
+      - mcp-rzd-tickets
+```
+
+### Локальный checkout
 
 ```json
 {
@@ -83,14 +141,14 @@ Cline, Roo Code, Continue, Codex-compatible MCP hosts и других клиен
 }
 ```
 
-С SOCKS-прокси:
+### Прокси
 
 ```json
 {
   "mcpServers": {
     "rzd_tickets": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp_rzd_tickets/dist/mcp.js"],
+      "command": "npx",
+      "args": ["-y", "mcp-rzd-tickets"],
       "env": {
         "RZD_PROXY_URL": "socks5://user:pass@host:1080",
         "RZD_TIMEOUT_MS": "20000"

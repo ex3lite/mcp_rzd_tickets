@@ -32,14 +32,14 @@ npm run build
 适用于 Claude Desktop、Cursor、Windsurf、Cline、Roo Code、Continue
 以及其他支持 stdio MCP 的客户端：
 
-通过 GitHub 和 `npx` 直接运行：
+通过 npm 和 `npx` 直接运行：
 
 ```json
 {
   "mcpServers": {
     "rzd_tickets": {
       "command": "npx",
-      "args": ["-y", "--package", "github:ex3lite/mcp_rzd_tickets", "rzd-tickets-mcp"],
+      "args": ["-y", "mcp-rzd-tickets"],
       "env": {
         "RZD_TIMEOUT_MS": "20000"
       }
