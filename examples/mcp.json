@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "rzd_tickets": {
+      "command": "npx",
+      "args": ["-y", "--package", "github:ex3lite/mcp_rzd_tickets", "rzd-tickets-mcp"],
+      "env": {
+        "RZD_TIMEOUT_MS": "20000"
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "name": "mcp-rzd-tickets",
+  "version": "0.1.0",
+  "description": "Read-only MCP server that gives AI agents live visibility into RZD train tickets, cars, lower/upper seats and adjacent pairs.",
+  "type": "module",
+  "bin": {
+    "mcp-rzd-tickets": "./dist/mcp.js",
+    "rzd-tickets-mcp": "./dist/mcp.js",
+    "rzd-tickets": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./mcp": "./dist/mcp.js"
+  },
+  "files": [
+    "dist",
+    "assets",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev:mcp": "tsx src/mcp.ts",
+    "prepare": "npm run build",
+    "test": "npm run build && tsx test/self-test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ex3lite/mcp_rzd_tickets.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "rzd",
+    "railway",
+    "tickets",
+    "agent-tools"
+  ],
+  "author": "ex3lite",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ex3lite/mcp_rzd_tickets/issues"
+  },
+  "homepage": "https://github.com/ex3lite/mcp_rzd_tickets#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "node-fetch": "^3.3.2",
+    "socks-proxy-agent": "^8.0.5",
+    "undici": "^6.27.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

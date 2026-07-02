@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "rzd_tickets": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp_rzd_tickets/dist/mcp.js"],
+      "env": {
+        "RZD_PROXY_URL": "socks5://user:pass@host:1080",
+        "RZD_TIMEOUT_MS": "20000"
+      }
+    }
+  }
+}
