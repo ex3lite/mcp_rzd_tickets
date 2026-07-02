@@ -54,6 +54,9 @@ Run directly from GitHub in MCP clients that support `npx`:
 }
 ```
 
+Proxy is disabled by default. Set `RZD_PROXY_URL` only when direct RZD requests
+do not work from your network.
+
 ## Filters
 
 - `trains`: exact train numbers, for example `["097Э"]`.
@@ -88,6 +91,24 @@ The server returns:
 - `tags`: extracted facts from `ServiceClassTranscript` and cautious hints;
 - `transcript`: official RZD text when present;
 - `description`: display-ready text.
+
+## Publishing
+
+Primary route:
+
+```bash
+npm publish --access public
+mcp-publisher login github
+mcp-publisher publish
+```
+
+`server.json` is ready for the official MCP Registry as
+`io.github.ex3lite/mcp-rzd-tickets`. The registry stores metadata; the runnable
+artifact should be the public npm package `mcp-rzd-tickets`.
+
+Smithery is also possible. This stdio server needs an MCPB bundle for local
+distribution; Smithery URL publishing requires a separate Streamable HTTP
+endpoint.
 
 Agents should show the raw code with `description` and prefer `transcript`
 when available. This keeps the server useful when RZD introduces new codes.

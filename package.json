@@ -1,6 +1,7 @@
 {
   "name": "mcp-rzd-tickets",
   "version": "0.1.0",
+  "mcpName": "io.github.ex3lite/mcp-rzd-tickets",
   "description": "Read-only MCP server that gives AI agents live visibility into RZD train tickets, cars, lower/upper seats and adjacent pairs.",
   "type": "module",
   "bin": {
@@ -17,6 +18,7 @@
     "assets",
     "docs",
     "examples",
+    "server.json",
     "README.md",
     "LICENSE",
     "SECURITY.md"

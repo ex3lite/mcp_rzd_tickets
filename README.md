@@ -100,6 +100,9 @@ Cline, Roo Code, Continue, Codex-compatible MCP hosts и других клиен
 }
 ```
 
+Прокси не нужен по умолчанию. Если `RZD_PROXY_URL` не задан, сервер ходит в
+РЖД напрямую.
+
 ## Примеры запросов агенту
 
 ```text
@@ -165,6 +168,24 @@ Cline, Roo Code, Continue, Codex-compatible MCP hosts и других клиен
 |---|---|
 | `RZD_PROXY_URL` | Опциональный `http://`, `https://`, `socks4://` или `socks5://` прокси. |
 | `RZD_TIMEOUT_MS` | Таймаут запроса. По умолчанию `20000`. |
+
+## Публикация
+
+Основной путь:
+
+```bash
+npm publish --access public
+mcp-publisher login github
+mcp-publisher publish
+```
+
+`server.json` уже подготовлен для официального MCP Registry:
+`io.github.ex3lite/mcp-rzd-tickets`. Сам registry хранит metadata, а код должен
+лежать в публичном npm-пакете `mcp-rzd-tickets`.
+
+Дополнительно можно опубликовать на Smithery. Для текущего stdio-сервера нужен
+MCPB bundle; для URL-публикации на Smithery потребуется отдельный Streamable
+HTTP endpoint.
 
 ## Языки
 
